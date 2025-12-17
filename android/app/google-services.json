@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "82639873656",
+    "firebase_url": "https://manage-your-stock-f684a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "manage-your-stock-f684a",
+    "storage_bucket": "manage-your-stock-f684a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82639873656:android:85bb2b6e707688e28e6f8d",
+        "android_client_info": {
+          "package_name": "com.example.manage_your_logistic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDH-fL8NLuockkoTEW_W4Fnk476KoU-Puw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
