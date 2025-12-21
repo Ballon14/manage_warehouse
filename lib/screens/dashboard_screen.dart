@@ -115,9 +115,22 @@ class DashboardScreen extends ConsumerWidget {
                       
                       // Bar Chart
                       if (moves.isNotEmpty)
-                        _StockMovementChart(
-                          inboundQty: stats['inboundQty']!,
-                          outboundQty: stats['outboundQty']!,
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final chartHeight = constraints.maxWidth < 360
+                                ? 180.0
+                                : constraints.maxWidth < 600
+                                    ? 200.0
+                                    : constraints.maxWidth < 840
+                                        ? 250.0
+                                        : 300.0;
+                            
+                            return _StockMovementChart(
+                              inboundQty: stats['inboundQty']!,
+                              outboundQty: stats['outboundQty']!,
+                              height: chartHeight,
+                            );
+                          },
                         ),
                       
                       const SizedBox(height: 24),
@@ -134,14 +147,30 @@ class DashboardScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.3,
-                children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisCount = constraints.maxWidth < 360
+                      ? 2
+                      : constraints.maxWidth < 600
+                          ? 2
+                          : constraints.maxWidth < 840
+                              ? 3
+                              : 4;
+                  
+                  final aspectRatio = constraints.maxWidth < 360 
+                      ? 1.2 
+                      : constraints.maxWidth < 600 
+                          ? 1.3 
+                          : 1.4;
+
+                  return GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: aspectRatio,
+                    children: [
                   _ActionCard(
                     icon: Icons.qr_code_scanner,
                     title: 'Scan',
@@ -202,8 +231,10 @@ class DashboardScreen extends ConsumerWidget {
                     },
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
 
               // Recent transactions
               Row(
@@ -378,10 +409,12 @@ class _StatsCard extends StatelessWidget {
 class _StockMovementChart extends StatelessWidget {
   final double inboundQty;
   final double outboundQty;
+  final double height;
 
   const _StockMovementChart({
     required this.inboundQty,
     required this.outboundQty,
+    required this.height,
   });
 
   @override
@@ -403,7 +436,7 @@ class _StockMovementChart extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 200,
+              height: height,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,

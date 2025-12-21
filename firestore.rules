@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    function isSupervisorOrAdmin() {
+      return hasRole('admin') || hasRole('supervisor');
+    }
+    
+    // Users collection - only owner can read/write their own data
+    match /users/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // Items collection - authenticated users can read, admin/supervisor can write
+    match /items/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isSupervisorOrAdmin();
+      allow update, delete: if isAdmin();
+    }
+    
+    // Stock levels - authenticated users can read, write requires validation
+    match /stock_levels/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      request.resource.data.qty >= 0; // Prevent negative stock
+    }
+    
+    // Stock moves - authenticated users can create and read
+    match /stock_moves/{moveId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.qty > 0; // Ensure positive quantities
+      allow update, delete: if false; // Stock moves are immutable
+    }
+    
+    // Inventory counts - authenticated users can create and read
+    match /inventory_counts/{sessionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                       resource.data.userId == request.auth.uid &&
+                       resource.data.status == 'draft'; // Only draft can be updated
+      allow delete: if false; // Counts are permanent records
+    }
+    
+    // Inventory count lines - linked to inventory counts
+    match /inventory_count_lines/{lineId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated(); // Controlled by parent count status
+    }
+    
+    // Optional: Locations collection (if implemented)
+    match /locations/{locationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

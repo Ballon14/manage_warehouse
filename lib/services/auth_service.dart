@@ -1,11 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
+import '../utils/app_logger.dart';
+import '../core/utils/validators.dart';
+import '../core/security/rate_limiter.dart';
+import '../core/config/security_constants.dart';
 import 'firestore_paths.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LoginRateLimiter _rateLimiter = LoginRateLimiter();
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -15,33 +20,58 @@ class AuthService {
 
   // Login with email and password
   Future<UserModel?> login(String email, String password) async {
+    // Sanitize inputs
+    final sanitizedEmail = Validators.sanitizeInput(email).toLowerCase().trim();
+    
+    // Check rate limiting
+    if (!_rateLimiter.isLoginAllowed(sanitizedEmail)) {
+      final lockoutEnd = _rateLimiter.getLockoutEnd(sanitizedEmail);
+      if (lockoutEnd != null) {
+        final remaining = lockoutEnd.difference(DateTime.now()).inMinutes;
+        throw Exception(
+          ErrorMessages.accountLocked +
+              ' (${remaining + 1} menit lagi)',
+        );
+      }
+    }
+    
     try {
-      print('🔑 AuthService: Attempting login for $email');
+      AppLogger.auth('Attempting login for $sanitizedEmail');
       final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
+        email: sanitizedEmail,
         password: password,
       );
 
       if (credential.user != null) {
-        print('✅ AuthService: Firebase auth successful, fetching user data...');
+        AppLogger.success('Firebase auth successful, fetching user data...', 'Auth');
         final userData = await getUserData(credential.user!.uid);
         if (userData != null) {
-          print('✅ AuthService: User data fetched successfully - ${userData.name}');
+          AppLogger.success('User data fetched successfully - ${userData.name}', 'Auth');
+          // Record successful login
+          _rateLimiter.recordAttempt(sanitizedEmail, success: true);
         } else {
-          print('⚠️ AuthService: User data is null!');
+          AppLogger.warning('User data is null!', 'Auth');
         }
         return userData;
       }
-      print('⚠️ AuthService: Credential user is null');
+      AppLogger.warning('Credential user is null', 'Auth');
       return null;
     } on FirebaseAuthException catch (e) {
-      print('❌ AuthService: FirebaseAuthException - ${e.code}');
+      // Record failed attempt
+      _rateLimiter.recordAttempt(sanitizedEmail, success: false);
+      
+      AppLogger.error('FirebaseAuthException - ${e.code}', 'Auth');
       // Handle specific Firebase auth errors
       switch (e.code) {
         case 'user-not-found':
           throw Exception('Email tidak terdaftar');
         case 'wrong-password':
-          throw Exception('Password salah');
+          final remaining = _rateLimiter.getRemainingAttempts(sanitizedEmail);
+          if (remaining > 0) {
+            throw Exception('Password salah. Sisa percobaan: $remaining');
+          } else {
+            throw Exception('Password salah');
+          }
         case 'invalid-email':
           throw Exception('Format email tidak valid');
         case 'user-disabled':
@@ -54,7 +84,9 @@ class AuthService {
           throw Exception('Login gagal: ${e.message ?? e.code}');
       }
     } catch (e) {
-      print('❌ AuthService: Unexpected error - $e');
+      // Record failed attempt for unknown errors
+      _rateLimiter.recordAttempt(sanitizedEmail, success: false);
+      AppLogger.error('Unexpected error', 'Auth', e);
       throw Exception('Login gagal: $e');
     }
   }
@@ -62,17 +94,27 @@ class AuthService {
   // Register new user
   Future<UserModel?> register(
       String email, String password, String name, String role) async {
+    // Sanitize inputs
+    final sanitizedEmail = Validators.sanitizeInput(email).toLowerCase().trim();
+    final sanitizedName = Validators.sanitizeInput(name).trim();
+    
+    // Validate password strength
+    final passwordError = Validators.validatePassword(password, requireStrong: true);
+    if (passwordError != null) {
+      throw Exception(passwordError);
+    }
+    
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
+        email: sanitizedEmail,
         password: password,
       );
 
       if (credential.user != null) {
         final userModel = UserModel(
           uid: credential.user!.uid,
-          name: name,
-          email: email,
+          name: sanitizedName,
+          email: sanitizedEmail,
           role: role,
         );
 
@@ -108,21 +150,62 @@ class AuthService {
   // Get user data from Firestore
   Future<UserModel?> getUserData(String uid) async {
     try {
-      print('📚 AuthService: Fetching user data for uid: $uid');
+      AppLogger.database('Fetching user data for uid: $uid');
       final doc = await _firestore
           .collection(FirestorePaths.users)
           .doc(uid)
           .get();
 
       if (doc.exists) {
-        print('✅ AuthService: User document found in Firestore');
+        AppLogger.success('User document found in Firestore', 'Database');
         return UserModel.fromFirestore(doc.data()!, uid);
       }
-      print('⚠️ AuthService: User document does NOT exist in Firestore!');
+      AppLogger.warning('User document does NOT exist in Firestore!', 'Database');
       return null;
     } catch (e) {
-      print('❌ AuthService: Error fetching user data - $e');
+      AppLogger.error('Error fetching user data', 'Database', e);
       throw Exception('Failed to get user data: $e');
+    }
+  }
+
+  // Update user profile
+  Future<UserModel> updateProfile(String uid, String newName, String newEmail) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Update name in Firestore
+      await _firestore.collection(FirestorePaths.users).doc(uid).update({
+        'name': newName,
+      });
+
+      // Update email in Firebase Auth if changed
+      if (newEmail != user.email) {
+        await user.verifyBeforeUpdateEmail(newEmail);
+      }
+
+      // Get updated user data
+      final updatedUser = await getUserData(uid);
+      if (updatedUser == null) {
+        throw Exception('Failed to fetch updated user data');
+      }
+
+      return updatedUser;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'requires-recent-login':
+          throw Exception('Please logout and login again to update email');
+        case 'email-already-in-use':
+          throw Exception('Email sudah digunakan');
+        case 'invalid-email':
+          throw Exception('Format email tidak valid');
+        default:
+          throw Exception('Failed to update profile: ${e.message ?? e.code}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
     }
   }
 

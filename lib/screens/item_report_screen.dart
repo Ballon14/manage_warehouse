@@ -144,7 +144,7 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
       child: SingleChildScrollView(
         child: DataTable(
           columnSpacing: 20,
-          headingRowColor: MaterialStateProperty.all(
+          headingRowColor: WidgetStateProperty.all(
             Theme.of(context).colorScheme.primary.withOpacity(0.1),
           ),
           columns: const [

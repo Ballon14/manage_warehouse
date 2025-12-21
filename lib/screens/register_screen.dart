@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
+import '../core/utils/validators.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +20,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  int _passwordStrength = 0;
 
   final _roles = const ['admin', 'supervisor', 'staff'];
 
@@ -88,13 +90,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       appBar: AppBar(
         title: const Text('Create Account'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               Text(
                 'Warehouse Registration',
                 style: Theme.of(context).textTheme.headlineSmall,
@@ -106,12 +111,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   labelText: 'Full Name',
                   prefixIcon: Icon(Icons.person),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter name';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    Validators.validateRequired(value, 'Nama'),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -121,15 +122,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.email),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter valid email';
-                  }
-                  return null;
-                },
+                validator: Validators.validateEmail,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -170,13 +163,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
+                onChanged: (value) {
+                  setState(() {
+                    _passwordStrength = Validators.getPasswordStrength(value);
+                  });
                 },
+                validator: (value) =>
+                    Validators.validatePassword(value, requireStrong: true),
               ),
+              if (_passwordController.text.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _buildPasswordStrengthIndicator(),
+              ],
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirmPasswordController,
@@ -214,12 +212,63 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Create Account'),
+                     : const Text('Create Account'),
               ),
-            ],
+            ], // Closing children array for Column
+          ), // Closing Column
+        ), // Closing Form
+      ), // Closing SingleChildScrollView
+    ), // Closing ConstrainedBox
+  ), // Closing Center (body)
+); // Closing Scaffold
+  }
+
+  Widget _buildPasswordStrengthIndicator() {
+    final strengthLabels = ['Sangat Lemah', 'Lemah', 'Cukup', 'Kuat', 'Sangat Kuat'];
+    final strengthColors = [
+      Colors.red,
+      Colors.orange,
+      Colors.yellow.shade700,
+      Colors.lightGreen,
+      Colors.green,
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: LinearProgressIndicator(
+                value: _passwordStrength / 4,
+                backgroundColor: Colors.grey.shade300,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  strengthColors[_passwordStrength],
+                ),
+                minHeight: 8,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              strengthLabels[_passwordStrength],
+              style: TextStyle(
+                color: strengthColors[_passwordStrength],
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Password harus minimal 8 karakter dengan huruf besar, kecil, dan angka',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade600,
           ),
         ),
-      ),
+      ],
     );
   }
 }

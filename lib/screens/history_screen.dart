@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/stock_provider.dart';
 import '../models/stock_move_model.dart';
+import '../widgets/empty_state_widget.dart';
+import '../widgets/loading_skeleton.dart';
 import 'package:intl/intl.dart';
 
 class HistoryScreen extends ConsumerWidget {
@@ -22,8 +24,10 @@ class HistoryScreen extends ConsumerWidget {
         child: stockMovesAsync.when(
           data: (moves) {
             if (moves.isEmpty) {
-              return const Center(
-                child: Text('No transactions found'),
+              return const EmptyStateWidget(
+                icon: Icons.history_outlined,
+                title: 'Belum Ada Riwayat',
+                message: 'Belum ada transaksi stock yang tercatat. Transaksi inbound dan outbound akan muncul di sini.',
               );
             }
 
@@ -69,7 +73,10 @@ class HistoryScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SkeletonList(
+            itemCount: 10,
+            itemHeight: 100,
+          ),
           error: (error, stack) => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

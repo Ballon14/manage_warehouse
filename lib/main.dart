@@ -23,7 +23,7 @@ class MyApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return MaterialApp(
-      title: 'Warehouse Management',
+      title: 'StockFlow',
       theme: AppTheme.lightTheme,
       home: authState.when(
         data: (user) {

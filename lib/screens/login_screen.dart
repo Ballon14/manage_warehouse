@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
+import '../utils/app_logger.dart';
 import 'register_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -31,24 +32,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      print('🔐 Login attempt started...');
+      AppLogger.auth('Login attempt started...');
       final authService = ref.read(authServiceProvider);
       final user = await authService.login(
         _emailController.text.trim(),
         _passwordController.text,
       );
       
-      print('✅ Login successful! User: ${user?.name}');
+      AppLogger.success('Login successful! User: ${user?.name}', 'Auth');
       
       if (mounted) {
-        print('🚀 Navigating to dashboard...');
+        AppLogger.navigation('Navigating to dashboard...');
         // Explicit navigation as fallback
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
       }
     } catch (e) {
-      print('❌ Login error: $e');
+      AppLogger.error('Login error', 'Auth', e);
       if (mounted) {
         // Extract clean error message
         String errorMessage = e.toString();
@@ -115,36 +116,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'Warehouse Management',
+                    'StockFlow',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Kelola stok dengan mudah dan efisien',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
+                    'Streamline Your Warehouse',
+                    style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
                   
-                  // Login Card
-                  Card(
-                    elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
+                  // Login Card with responsive constraints
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      child: Card(
+                        elevation: 4,
+                        shadowColor: Colors.black.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
@@ -189,25 +192,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               },
                             ),
                             const SizedBox(height: 24),
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _login,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                minimumSize: const Size(double.infinity, 56),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
+                            AnimatedScale(
+                              scale: _isLoading ? 0.95 : 1.0,
+                              duration: const Duration(milliseconds: 100),
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _login,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  minimumSize: const Size(double.infinity, 56),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Masuk',
+                                        style: TextStyle(fontSize: 16),
                                       ),
-                                    )
-                                  : const Text(
-                                      'Masuk',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
+                              ),
                             ),
                             const SizedBox(height: 16),
                             OutlinedButton.icon(
@@ -226,17 +233,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 minimumSize: const Size(double.infinity, 56),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+                          ], // Closing children array for Column
+                        ), // Closing Column
+                      ), // Closing Form
+                    ), // Closing Padding
+                  ), // Closing Card
+                ), // Closing ConstrainedBox
+              ), // Closing Center (for Card)
+            ], // Closing children array for outer Column
+          ), // Closing outer Column
+        ), // Closing SingleChildScrollView
+      ), // Closing Center (for scroll)
+    ), // Closing SafeArea
+  ), // Closing Container (body)
+); // Closing Scaffold
   }
 }

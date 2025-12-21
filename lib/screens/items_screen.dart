@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/item_provider.dart';
+import '../widgets/empty_state_widget.dart';
+import '../widgets/loading_skeleton.dart';
 import 'item_detail_screen.dart';
 import 'add_item_screen.dart';
 import 'edit_item_screen.dart';
@@ -61,8 +63,28 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
             child: itemsAsync.when(
               data: (items) {
                 if (items.isEmpty) {
-                  return const Center(
-                    child: Text('No items found'),
+                  return EmptyStateWidget(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'Belum Ada Item',
+                    message: 'Belum ada item yang ditambahkan. Tap tombol + untuk menambahkan item baru.',
+                    onAction: () async {
+                      final navigator = Navigator.of(context);
+                      final messenger = ScaffoldMessenger.of(context);
+                      
+                      final created = await navigator.push<bool>(
+                        MaterialPageRoute(builder: (_) => const AddItemScreen()),
+                      );
+                      
+                      if (created == true && mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Item created successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
+                    actionLabel: 'Tambah Item',
                   );
                 }
                 return ListView.builder(
@@ -199,7 +221,10 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const SkeletonList(
+                itemCount: 8,
+                itemHeight: 80,
+              ),
               error: (error, stack) => Center(
                 child: Text('Error: $error'),
               ),

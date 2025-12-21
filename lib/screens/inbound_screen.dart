@@ -170,11 +170,14 @@ class _InboundScreenState extends ConsumerState<InboundScreen> {
         title: const Text('Inbound'),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             Card(
               elevation: 2,
               child: Container(
@@ -294,10 +297,12 @@ class _InboundScreenState extends ConsumerState<InboundScreen> {
               ),
               child: const Text('Process Inbound'),
             ),
-          ],
-        ),
-      ),
-    );
+          ], // Closing children array for Column
+        ), // Closing Column
+      ), // Closing SingleChildScrollView
+    ), // Closing ConstrainedBox
+  ), // Closing Center (body)
+); // Closing Scaffold
   }
 }
 

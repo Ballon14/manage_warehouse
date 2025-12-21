@@ -170,11 +170,14 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
       appBar: AppBar(
         title: const Text('Outbound'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -251,10 +254,12 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
               ),
               child: const Text('Process Outbound'),
             ),
-          ],
-        ),
-      ),
-    );
+          ], // Closing children array for Column
+        ), // Closing Column
+      ), // Closing SingleChildScrollView
+    ), // Closing ConstrainedBox
+  ), // Closing Center (body)
+); // Closing Scaffold
   }
 }
 

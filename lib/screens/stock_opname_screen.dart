@@ -203,11 +203,14 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
       appBar: AppBar(
         title: const Text('Stock Opname'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             if (!_isSessionActive) ...[
               Card(
                 child: Padding(
@@ -324,9 +327,11 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
                 ),
               ],
             ],
-          ],
-        ),
-      ),
-    );
+          ], // Closing children array for Column
+        ), // Closing Column
+      ), // Closing SingleChildScrollView
+    ), // Closing ConstrainedBox
+  ), // Closing Center (body)
+); // Closing Scaffold
   }
 }
