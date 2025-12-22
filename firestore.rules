@@ -24,10 +24,12 @@ service cloud.firestore {
       return hasRole('admin') || hasRole('supervisor');
     }
     
-    // Users collection - only owner can read/write their own data
+    // Users collection - admin can read all, users can only read/write their own
     match /users/{userId} {
-      allow read: if isAuthenticated() && isOwner(userId);
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
       allow write: if isAuthenticated() && isOwner(userId);
+      allow delete: if isAdmin(); // Admin can delete users
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin()); // Admin can update roles
     }
     
     // Items collection - authenticated users can read, admin/supervisor can write

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_logger.dart';
-import 'register_screen.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -216,30 +215,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const RegisterScreen(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.person_add_outlined),
-                              label: const Text('Buat Akun Baru'),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                minimumSize: const Size(double.infinity, 56),
-                              ),
-                            ),
-                          ], // Closing children array for Column
-                        ), // Closing Column
-                      ), // Closing Form
-                    ), // Closing Padding
-                  ), // Closing Card
-                ), // Closing ConstrainedBox
-              ), // Closing Center (for Card)
+                            ], // Closing children array for Column
+                          ), // Closing Column
+                        ), // Closing Form
+                      ), // Closing Padding
+                    ), // Closing Card
+                  ), // Closing ConstrainedBox
+                ), // Closing Center (for Card)
             ], // Closing children array for outer Column
           ), // Closing outer Column
         ), // Closing SingleChildScrollView

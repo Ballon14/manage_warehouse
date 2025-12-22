@@ -1,0 +1,79 @@
+{
+    "workbench.editor.enablePreview": false,
+    "explorer.confirmDelete": false,
+    "files.autoSave": "afterDelay",
+    "workbench.startupEditor": "none",
+    "workbench.colorTheme": "One Dark Pro Flat",
+    "workbench.productIconTheme": "vscode-icons",
+    "window.titleBarStyle": "custom",
+    "vsicons.dontShowNewVersionMessage": true,
+    "workbench.sideBar.location": "right",
+    "workbench.iconTheme": "vscode-icons",
+    "workbench.editor.empty.hint": "hidden",
+
+    "editor.formatOnSave": true,
+    "editor.cursorBlinking": "expand",
+    "editor.fontWeight": "500",
+    "editor.fontFamily": "JetBrains Mono, Consolas, 'Courier New', monospace",
+    "editor.fontLigatures": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.smoothScrolling": true,
+    "editor.mouseWheelZoom": false,
+    "editor.fontSize": 14,
+    "editor.minimap.enabled": false,
+    "editor.formatOnPaste": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.fontVariations": false,
+
+    "notebook.defaultFormatter": "esbenp.prettier-vscode",
+
+    "git.openRepositoryInParentFolders": "always",
+    "diffEditor.hideUnchangedRegions.enabled": true,
+
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.donotVerifyTags": true,
+
+    "prettier.semi": false,
+    "prettier.tabWidth": 4,
+
+    "[php]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[blade]": {
+        "editor.defaultFormatter": "shufo.vscode-blade-formatter"
+    },
+
+    "cloudcode.duetAI.project": "snappy-cosine-438202-r4",
+
+    "indentRainbow.errorColor": "rgba(128,32,32,0.9)",
+    "indentRainbow.tabmixColor": "rgba(128,32,96,0.8)",
+    "security.workspace.trust.untrustedFiles": "open",
+
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+
+    "files.saveConflictResolution": "overwriteFileOnDisk",
+
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.exe": "default",
+        "*.xlsx": "default"
+    },
+
+    "docker.extension.dockerEngineAvailabilityPrompt": false,
+
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true,
+
+    "azureResourceGroups.selectedSubscriptions": [],
+    "azureResourceGroups.selectedSubscriptions": [],
+
+    "dart.flutterSdkPath": "/home/iqbal/development/flutter",
+
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+
+    "json.schemaDownload.enable": true,
+    "json.schemaDownload.enable": true,
+
+    "python.languageServer": "None"
+}

@@ -140,6 +140,22 @@ class StockService {
         .toList());
   }
 
+  // Get stock moves for a specific item
+  Stream<List<StockMoveModel>> getStockMovesForItem(String itemId, {int? limit}) {
+    var query = _firestore
+        .collection(FirestorePaths.stockMoves)
+        .where('itemId', isEqualTo: itemId)
+        .orderBy('timestamp', descending: true);
+
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+
+    return query.snapshots().map((snapshot) => snapshot.docs
+        .map((doc) => StockMoveModel.fromFirestore(doc.data(), doc.id))
+        .toList());
+  }
+
   // Create inventory count session
   Future<String> createInventoryCount(
       String userId, String locationId) async {

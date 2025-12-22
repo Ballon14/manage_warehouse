@@ -216,5 +216,99 @@ class AuthService {
 
   // Check if user is authenticated
   bool get isAuthenticated => _auth.currentUser != null;
+
+  // ============ ADMIN USER MANAGEMENT ============
+  
+  // Get all users stream (admin only)
+  Stream<List<UserModel>> getAllUsers() {
+    return _firestore
+        .collection(FirestorePaths.users)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => UserModel.fromFirestore(doc.data(), doc.id))
+            .toList());
+  }
+
+  // Create user by admin
+  Future<UserModel> createUserByAdmin({
+    required String email,
+    required String password,
+    required String name,
+    required String role,
+  }) async {
+    // Sanitize inputs
+    final sanitizedEmail = Validators.sanitizeInput(email).toLowerCase().trim();
+    final sanitizedName = Validators.sanitizeInput(name).trim();
+    
+    // Validate password strength
+    final passwordError = Validators.validatePassword(password, requireStrong: false);
+    if (passwordError != null) {
+      throw Exception(passwordError);
+    }
+    
+    try {
+      // Create user in Firebase Auth
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: sanitizedEmail,
+        password: password,
+      );
+
+      if (credential.user != null) {
+        final userModel = UserModel(
+          uid: credential.user!.uid,
+          name: sanitizedName,
+          email: sanitizedEmail,
+          role: role,
+        );
+
+        // Save to Firestore
+        await _firestore
+            .collection(FirestorePaths.users)
+            .doc(credential.user!.uid)
+            .set(userModel.toFirestore());
+
+        return userModel;
+      }
+      throw Exception('Failed to create user');
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'email-already-in-use':
+          throw Exception('Email sudah terdaftar');
+        case 'invalid-email':
+          throw Exception('Format email tidak valid');
+        case 'weak-password':
+          throw Exception('Password terlalu lemah. Minimal 6 karakter');
+        default:
+          throw Exception('Gagal membuat user: ${e.message ?? e.code}');
+      }
+    } catch (e) {
+      throw Exception('Gagal membuat user: $e');
+    }
+  }
+
+  // Update user role (admin only)
+  Future<void> updateUserRole(String uid, String newRole) async {
+    try {
+      await _firestore.collection(FirestorePaths.users).doc(uid).update({
+        'role': newRole,
+      });
+    } catch (e) {
+      throw Exception('Gagal mengubah role: $e');
+    }
+  }
+
+  // Delete user (admin only)
+  Future<void> deleteUser(String uid) async {
+    try {
+      // Delete from Firestore
+      await _firestore.collection(FirestorePaths.users).doc(uid).delete();
+      
+      // Note: Deleting from Firebase Auth requires admin SDK on backend
+      // For now, we only delete from Firestore
+      // User won't be able to login as their Firestore data is gone
+    } catch (e) {
+      throw Exception('Gagal menghapus user: $e');
+    }
+  }
 }
 

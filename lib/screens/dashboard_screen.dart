@@ -12,6 +12,7 @@ import 'stock_opname_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'item_report_screen.dart';
+import 'user_management_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -75,7 +76,118 @@ class DashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              // Stock Movement Statistics
+              // Quick actions (moved up)
+              Text(
+                'Quick Actions',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // More responsive column count for different screen sizes
+                  final crossAxisCount = constraints.maxWidth < 360
+                      ? 2
+                      : constraints.maxWidth < 600
+                          ? 3
+                          : constraints.maxWidth < 900
+                              ? 4
+                              : 5;
+                  
+                  // Better aspect ratio for web (wider cards look better)
+                  final aspectRatio = constraints.maxWidth < 360 
+                      ? 1.1
+                      : constraints.maxWidth < 600 
+                          ? 1.2
+                          : 1.4;
+
+                  return GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: aspectRatio,
+                    children: [
+                  _ActionCard(
+                    icon: Icons.qr_code_scanner,
+                    title: 'Scan',
+                    color: Colors.blue,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ScanScreen()),
+                      );
+                    },
+                  ),
+                  _ActionCard(
+                    icon: Icons.add_box,
+                    title: 'Inbound',
+                    color: Colors.green,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const InboundScreen()),
+                      );
+                    },
+                  ),
+                  _ActionCard(
+                    icon: Icons.remove_circle,
+                    title: 'Outbound',
+                    color: Colors.orange,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const OutboundScreen()),
+                      );
+                    },
+                  ),
+                  _ActionCard(
+                    icon: Icons.inventory_2,
+                    title: 'Stock Opname',
+                    color: Colors.purple,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const StockOpnameScreen()),
+                      );
+                    },
+                  ),
+                  _ActionCard(
+                    icon: Icons.description,
+                    title: 'Laporan Barang',
+                    color: Colors.teal,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ItemReportScreen()),
+                      );
+                    },
+                  ),
+                  // User Management (Admin Only)
+                  if (user?.role == 'admin')
+                    _ActionCard(
+                      icon: Icons.people,
+                      title: 'User Management',
+                      color: Colors.red,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const UserManagementScreen()),
+                        );
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+
+              // Stock Movement Statistics (moved down)
               stockMovesAsync.when(
                 data: (moves) {
                   final stats = _calculateStats(moves);
@@ -140,101 +252,6 @@ class DashboardScreen extends ConsumerWidget {
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
               ),
-
-              // Quick actions
-              Text(
-                'Quick Actions',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final crossAxisCount = constraints.maxWidth < 360
-                      ? 2
-                      : constraints.maxWidth < 600
-                          ? 2
-                          : constraints.maxWidth < 840
-                              ? 3
-                              : 4;
-                  
-                  final aspectRatio = constraints.maxWidth < 360 
-                      ? 1.2 
-                      : constraints.maxWidth < 600 
-                          ? 1.3 
-                          : 1.4;
-
-                  return GridView.count(
-                    crossAxisCount: crossAxisCount,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: aspectRatio,
-                    children: [
-                  _ActionCard(
-                    icon: Icons.qr_code_scanner,
-                    title: 'Scan',
-                    color: Colors.blue,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ScanScreen()),
-                      );
-                    },
-                  ),
-                  _ActionCard(
-                    icon: Icons.add_box,
-                    title: 'Inbound',
-                    color: Colors.green,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const InboundScreen()),
-                      );
-                    },
-                  ),
-                  _ActionCard(
-                    icon: Icons.remove_circle,
-                    title: 'Outbound',
-                    color: Colors.orange,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const OutboundScreen()),
-                      );
-                    },
-                  ),
-                  _ActionCard(
-                    icon: Icons.inventory_2,
-                    title: 'Stock Opname',
-                    color: Colors.purple,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const StockOpnameScreen()),
-                      );
-                    },
-                  ),
-                  _ActionCard(
-                    icon: Icons.description,
-                    title: 'Laporan Barang',
-                    color: Colors.teal,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const ItemReportScreen()),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 24),
 
               // Recent transactions
               Row(
@@ -543,20 +560,46 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 48, color: color),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive sizing based on available width
+        final isLargeScreen = constraints.maxWidth > 120;
+        final iconSize = isLargeScreen ? 32.0 : 28.0;
+        final fontSize = isLargeScreen ? 13.0 : 11.0;
+        final verticalPadding = isLargeScreen ? 12.0 : 8.0;
+        final spaceBetween = isLargeScreen ? 6.0 : 4.0;
+        
+        return Card(
+          elevation: 2,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: iconSize, color: color),
+                  SizedBox(height: spaceBetween),
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: fontSize,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

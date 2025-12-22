@@ -4,18 +4,88 @@ import '../providers/stock_provider.dart';
 import '../models/stock_move_model.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/loading_skeleton.dart';
+import '../services/export_service.dart';
 import 'package:intl/intl.dart';
 
-class HistoryScreen extends ConsumerWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  bool _isExporting = false;
+
+  Future<void> _exportTransactions(List<StockMoveModel> transactions) async {
+    if (_isExporting || transactions.isEmpty) return;
+
+    setState(() => _isExporting = true);
+
+    try {
+      // Generate CSV content
+      final csvContent = ExportService.generateTransactionCSV(transactions);
+      
+      // Generate filename
+      final filename = ExportService.generateTransactionFilename();
+      
+      // Export to file
+      await ExportService.exportToFile(filename, csvContent);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export berhasil: $filename'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export gagal: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExporting = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final stockMovesAsync = ref.watch(stockMovesStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction History'),
+        actions: [
+          stockMovesAsync.maybeWhen(
+            data: (moves) => moves.isNotEmpty
+                ? IconButton(
+                    icon: _isExporting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.download),
+                    tooltip: 'Export to CSV',
+                    onPressed: _isExporting ? null : () => _exportTransactions(moves),
+                  )
+                : const SizedBox.shrink(),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {

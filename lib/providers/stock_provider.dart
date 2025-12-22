@@ -24,3 +24,10 @@ final inventoryCountLinesProvider =
   return stockService.getInventoryCountLines(sessionId);
 });
 
+// Provider for item-specific transactions
+final itemTransactionsProvider = StreamProvider.family<List<StockMoveModel>, String>(
+    (ref, itemId) {
+  final stockService = ref.watch(stockServiceProvider);
+  return stockService.getStockMovesForItem(itemId);
+});
+

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/item_provider.dart';
 import '../models/item_model.dart';
+import '../models/period_filter.dart';
+import '../services/export_service.dart';
 
 class ItemReportScreen extends ConsumerStatefulWidget {
   const ItemReportScreen({super.key});
@@ -14,6 +16,7 @@ class ItemReportScreen extends ConsumerStatefulWidget {
 class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
   String _sortBy = 'name'; // name, sku, createdAt
   bool _ascending = true;
+  ReportPeriod _selectedPeriod = ReportPeriod.all;
 
   List<ItemModel> _getSortedItems(List<ItemModel> items) {
     final sorted = List<ItemModel>.from(items);
@@ -39,12 +42,106 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
     return sorted;
   }
 
+  List<ItemModel> _filterByPeriod(List<ItemModel> items) {
+    final now = DateTime.now();
+    
+    switch (_selectedPeriod) {
+      case ReportPeriod.today:
+        return items.where((item) {
+          final itemDate = item.createdAt;
+          return itemDate.year == now.year &&
+                 itemDate.month == now.month &&
+                 itemDate.day == now.day;
+        }).toList();
+      
+      case ReportPeriod.thisWeek:
+        final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+        final endOfWeek = startOfWeek.add(const Duration(days: 6));
+        return items.where((item) => 
+          item.createdAt.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+          item.createdAt.isBefore(endOfWeek.add(const Duration(days: 1)))).toList();
+      
+      case ReportPeriod.thisMonth:
+        return items.where((item) =>
+          item.createdAt.month == now.month &&
+          item.createdAt.year == now.year).toList();
+      
+      case ReportPeriod.thisYear:
+        return items.where((item) =>
+          item.createdAt.year == now.year).toList();
+      
+      case ReportPeriod.all:
+      default:
+        return items;
+    }
+  }
+
   String _formatDateIndonesian(DateTime date) {
     const months = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  void _showPeriodFilter() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter Periode'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: ReportPeriod.values.map((period) {
+            return RadioListTile<ReportPeriod>(
+              title: Row(
+                children: [
+                  Icon(period.icon, size: 20),
+                  const SizedBox(width: 12),
+                  Text(period.label),
+                ],
+              ),
+              value: period,
+              groupValue: _selectedPeriod,
+              onChanged: (value) {
+                setState(() => _selectedPeriod = value!);
+                Navigator.pop(context);
+              },
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _exportToCSV(List<ItemModel> items) async {
+    try {
+      // Generate filename with period
+      final filename = ExportService.generateFilename(_selectedPeriod);
+      
+      // Generate CSV
+      final csv = ExportService.generateCSV(items, _selectedPeriod.label);
+      
+      // Export to file
+      await ExportService.exportToFile(filename, csv);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Laporan berhasil di-export: $filename')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal export: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildMobileView(List<ItemModel> items) {
@@ -139,90 +236,160 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
   }
 
   Widget _buildTableView(List<ItemModel> items) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SingleChildScrollView(
-        child: DataTable(
-          columnSpacing: 20,
-          headingRowColor: WidgetStateProperty.all(
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          ),
-          columns: const [
-            DataColumn(label: Text('No', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Nama Item', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('SKU', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Barcode', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Reorder Level', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Satuan', style: TextStyle(fontWeight: FontWeight.bold))),
-            DataColumn(label: Text('Tanggal Dibuat', style: TextStyle(fontWeight: FontWeight.bold))),
-          ],
-          rows: items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            final dateStr = DateFormat('dd/MM/yyyy').format(item.createdAt);
-            
-            return DataRow(
-              cells: [
-                DataCell(Text('${index + 1}')),
-                DataCell(Text(item.name)),
-                DataCell(Text(item.sku)),
-                DataCell(Text(item.barcode ?? '-')),
-                DataCell(Text(item.reorderLevel.toString())),
-                DataCell(Text(item.uom)),
-                DataCell(Text(dateStr)),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _exportToCSV(List<ItemModel> items) {
-    final csv = StringBuffer();
-    
-    // Header
-    csv.writeln('No,Nama Item,SKU,Barcode,Reorder Level,Satuan,Tanggal Dibuat');
-    
-    // Data rows
-    for (var i = 0; i < items.length; i++) {
-      final item = items[i];
-      final dateStr = DateFormat('dd/MM/yyyy').format(item.createdAt);
-      csv.writeln(
-        '${i + 1},"${item.name}","${item.sku}","${item.barcode ?? '-'}",${item.reorderLevel},"${item.uom}","$dateStr"'
-      );
-    }
-    
-    // Show dialog with CSV data
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Export CSV'),
-        content: SingleChildScrollView(
-          child: SelectableText(
-            csv.toString(),
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
-          ),
-          TextButton(
-            onPressed: () {
-              // In a real app, save to file
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Copy teks di atas untuk save ke file CSV'),
-                  duration: Duration(seconds: 3),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          width: constraints.maxWidth,
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: constraints.maxWidth - 32,
+              ),
+              child: DataTable(
+                columnSpacing: 16,
+                horizontalMargin: 12,
+                headingRowHeight: 48,
+                dataRowMinHeight: 44,
+                dataRowMaxHeight: 56,
+                headingRowColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 ),
-              );
-            },
-            child: const Text('Info'),
+                border: TableBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  horizontalInside: BorderSide(
+                    color: Colors.grey.shade200,
+                    width: 1,
+                  ),
+                ),
+                columns: [
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 40),
+                      child: const Text(
+                        'No',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 150),
+                      child: const Text(
+                        'Nama Item',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 100),
+                      child: const Text(
+                        'SKU',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 120),
+                      child: const Text(
+                        'Barcode',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 100),
+                      child: const Text(
+                        'Reorder Level',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    numeric: true,
+                  ),
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 80),
+                      child: const Text(
+                        'Satuan',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Container(
+                      constraints: const BoxConstraints(minWidth: 110),
+                      child: const Text(
+                        'Tanggal Dibuat',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+                rows: items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final dateStr = DateFormat('dd/MM/yyyy').format(item.createdAt);
+                  
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 40),
+                          child: Text('${index + 1}'),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 150),
+                          child: Text(
+                            item.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 100),
+                          child: Text(item.sku),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 120),
+                          child: Text(item.barcode ?? '-'),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 100),
+                          alignment: Alignment.centerRight,
+                          child: Text(item.reorderLevel.toString()),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 80),
+                          child: Text(item.uom),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 110),
+                          child: Text(dateStr),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -232,10 +399,26 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Laporan Data Barang'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Laporan Data Barang', style: TextStyle(fontSize: 18)),
+            Text(
+              _selectedPeriod.label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+            ),
+          ],
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filter Periode',
+            onPressed: _showPeriodFilter,
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
+            tooltip: 'Urutkan',
             onSelected: (value) {
               setState(() {
                 if (value == _sortBy) {
@@ -289,20 +472,37 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
       ),
       body: itemsAsync.when(
         data: (items) {
-          if (items.isEmpty) {
-            return const Center(
+          // Apply period filter first
+          final filteredItems = _filterByPeriod(items);
+          
+          if (filteredItems.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('Belum ada data barang', style: TextStyle(color: Colors.grey)),
+                  const Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tidak ada data untuk ${_selectedPeriod.label}',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  if (_selectedPeriod != ReportPeriod.all) ...[
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() => _selectedPeriod = ReportPeriod.all);
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tampilkan Semua'),
+                    ),
+                  ],
                 ],
               ),
             );
           }
 
-          final sortedItems = _getSortedItems(items);
+          // Apply sorting
+          final sortedItems = _getSortedItems(filteredItems);
           final dateNow = _formatDateIndonesian(DateTime.now());
 
           return Column(
@@ -338,19 +538,39 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Total: ${items.length} Item',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Periode: ${_selectedPeriod.label}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Total: ${sortedItems.length} Item',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -380,13 +600,16 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
         ),
       ),
       floatingActionButton: itemsAsync.maybeWhen(
-        data: (items) => items.isNotEmpty
-            ? FloatingActionButton.extended(
-                onPressed: () => _exportToCSV(_getSortedItems(items)),
-                icon: const Icon(Icons.download),
-                label: const Text('Export CSV'),
-              )
-            : null,
+        data: (items) {
+          final filteredItems = _filterByPeriod(items);
+          return filteredItems.isNotEmpty
+              ? FloatingActionButton.extended(
+                  onPressed: () => _exportToCSV(_getSortedItems(filteredItems)),
+                  icon: const Icon(Icons.download),
+                  label: const Text('Export CSV'),
+                )
+              : null;
+        },
         orElse: () => null,
       ),
     );

@@ -4,6 +4,7 @@ import '../providers/auth_provider.dart';
 import '../providers/stock_provider.dart';
 import '../providers/item_provider.dart';
 import 'login_screen.dart';
+import 'user_management_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -171,6 +172,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
+          // User Management (Admin Only)
+          if (user != null && user.role == 'admin') ...[
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Manajemen',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('User Management'),
+              subtitle: const Text('Kelola pengguna sistem'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UserManagementScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+          ],
           ListTile(
             leading: const Icon(Icons.sync),
             title: const Text('Sync Data'),
