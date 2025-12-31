@@ -1,0 +1,23 @@
+Running Gradle task 'assembleRelease'...                        
+e: file:///home/iqbal/development/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:744:21 Unresolved reference: filePermissions
+e: file:///home/iqbal/development/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:745:25 Unresolved reference: user
+e: file:///home/iqbal/development/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:746:29 Unresolved reference: read
+e: file:///home/iqbal/development/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:747:29 Unresolved reference: write
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':gradle:compileKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 6s
+Running Gradle task 'assembleRelease'...                            7.3s
+Gradle task assembleRelease failed with exit code 1

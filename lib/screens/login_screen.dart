@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../utils/app_logger.dart';
 import 'dashboard_screen.dart';
 
@@ -11,15 +12,62 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
+
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotateAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Setup logo animation
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    _rotateAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _animationController.forward();
+
+    // Check for saved credentials
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final savedEmail = prefs.getString('saved_email');
+    if (savedEmail != null && savedEmail.isNotEmpty) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _rememberMe = true;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -37,6 +85,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
+
+      // Save email if Remember Me is checked
+      if (_rememberMe) {
+        final prefs = ref.read(sharedPreferencesProvider);
+        await prefs.setString('saved_email', _emailController.text.trim());
+      } else {
+        final prefs = ref.read(sharedPreferencesProvider);
+        await prefs.remove('saved_email');
+      }
 
       AppLogger.success('Login successful! User: ${user?.name}', 'Auth');
 
@@ -93,27 +150,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo and Title
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                  // Animated Logo
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: RotationTransition(
+                      turns: _rotateAnimation,
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.warehouse_rounded,
-                      size: 60,
-                      color: Colors.white,
+                        child: const Icon(
+                          Icons.warehouse_rounded,
+                          size: 60,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -194,7 +262,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     return null;
                                   },
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 8),
+
+                                // Remember Me Checkbox
+                                CheckboxListTile(
+                                  value: _rememberMe,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _rememberMe = value ?? false;
+                                    });
+                                  },
+                                  title: const Text('Remember my email'),
+                                  contentPadding: EdgeInsets.zero,
+                                  controlAffinity:
+                                      ListTileControlAffinity.leading,
+                                  dense: true,
+                                ),
+
+                                const SizedBox(height: 16),
                                 AnimatedScale(
                                   scale: _isLoading ? 0.95 : 1.0,
                                   duration: const Duration(milliseconds: 100),

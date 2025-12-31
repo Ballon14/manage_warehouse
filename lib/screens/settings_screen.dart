@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../providers/stock_provider.dart';
 import '../providers/item_provider.dart';
+import '../providers/theme_provider.dart';
 import 'login_screen.dart';
 import 'user_management_screen.dart';
 
@@ -91,7 +92,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                 if (mounted) {
                   Navigator.pop(context);
-                  
+
                   // Refresh user data
                   ref.invalidate(authStateProvider);
 
@@ -172,6 +173,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
             ),
+          // Appearance Settings
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Appearance',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Consumer(
+            builder: (context, ref, child) {
+              final themeMode = ref.watch(themeModeProvider);
+              final isDark = ref.watch(isDarkModeProvider);
+
+              return Column(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      isDark ? Icons.dark_mode : Icons.light_mode,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: const Text('Theme Mode'),
+                    subtitle: Text(
+                      themeMode == ThemeMode.system
+                          ? 'System default'
+                          : themeMode == ThemeMode.dark
+                              ? 'Dark mode'
+                              : 'Light mode',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => _ThemeModeDialog(),
+                      );
+                    },
+                  ),
+                  SwitchListTile(
+                    secondary: Icon(
+                      isDark ? Icons.nights_stay : Icons.wb_sunny,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: const Text('Dark Mode'),
+                    subtitle: Text(
+                      themeMode == ThemeMode.system
+                          ? 'Following system setting'
+                          : isDark
+                              ? 'Dark theme active'
+                              : 'Light theme active',
+                    ),
+                    value: themeMode == ThemeMode.dark,
+                    onChanged: themeMode == ThemeMode.system
+                        ? null
+                        : (bool value) {
+                            ref.read(themeModeProvider.notifier).setThemeMode(
+                                  value ? ThemeMode.dark : ThemeMode.light,
+                                );
+                          },
+                  ),
+                ],
+              );
+            },
+          ),
           // User Management (Admin Only)
           if (user != null && user.role == 'admin') ...[
             const Divider(),
@@ -213,10 +280,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-           ListTile(
+          ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('About'),
-            subtitle: Text('StockFlow v1.0.0'),
+            subtitle: Text('StockFlow v2.1.0'),
             onTap: () {},
           ),
           const Divider(),
@@ -259,6 +326,68 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Dialog for selecting theme mode
+class _ThemeModeDialog extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.watch(themeModeProvider);
+
+    return AlertDialog(
+      title: const Text('Choose Theme'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<ThemeMode>(
+            title: const Text('Light'),
+            subtitle: const Text('Always use light theme'),
+            secondary: const Icon(Icons.wb_sunny),
+            value: ThemeMode.light,
+            groupValue: currentMode,
+            onChanged: (mode) {
+              if (mode != null) {
+                ref.read(themeModeProvider.notifier).setThemeMode(mode);
+                Navigator.pop(context);
+              }
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: const Text('Dark'),
+            subtitle: const Text('Always use dark theme'),
+            secondary: const Icon(Icons.dark_mode),
+            value: ThemeMode.dark,
+            groupValue: currentMode,
+            onChanged: (mode) {
+              if (mode != null) {
+                ref.read(themeModeProvider.notifier).setThemeMode(mode);
+                Navigator.pop(context);
+              }
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: const Text('System'),
+            subtitle: const Text('Follow system theme'),
+            secondary: const Icon(Icons.brightness_auto),
+            value: ThemeMode.system,
+            groupValue: currentMode,
+            onChanged: (mode) {
+              if (mode != null) {
+                ref.read(themeModeProvider.notifier).setThemeMode(mode);
+                Navigator.pop(context);
+              }
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 }

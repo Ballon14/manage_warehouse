@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/item_provider.dart';
+import '../providers/filter_provider.dart';
+import '../models/filter_model.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/loading_skeleton.dart';
+import '../widgets/search_field_with_history.dart';
+import '../widgets/filter_bottom_sheet.dart';
 import 'item_detail_screen.dart';
 import 'add_item_screen.dart';
 import 'edit_item_screen.dart';
@@ -31,58 +35,131 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Items'),
+        actions: [
+          // Filter button
+          Consumer(
+            builder: (context, ref, child) {
+              final filter = ref.watch(filterProvider);
+              final hasFilters = filter.hasActiveFilters;
+
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => DraggableScrollableSheet(
+                          initialChildSize: 0.7,
+                          minChildSize: 0.5,
+                          maxChildSize: 0.9,
+                          builder: (context, scrollController) =>
+                              const FilterBottomSheet(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (hasFilters)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
+          // Search with History
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search by name or SKU...',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            ref.read(itemsSearchProvider.notifier).state = '';
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                ),
-                onChanged: (value) {
-                  ref.read(itemsSearchProvider.notifier).state = value;
-                },
-              ),
+            child: SearchFieldWithHistory(
+              controller: _searchController,
+              onSearch: (query) {
+                ref.read(filterProvider.notifier).setSearchQuery(query);
+              },
+              hintText: 'Search by name or SKU...',
             ),
+          ),
+
+          // Active Filters Chips
+          Consumer(
+            builder: (context, ref, child) {
+              final filter = ref.watch(filterProvider);
+
+              if (!filter.hasActiveFilters) {
+                return const SizedBox.shrink();
+              }
+
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    if (filter.stockLevel != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Chip(
+                          avatar: Icon(
+                            filter.stockLevel!.icon,
+                            size: 16,
+                            color: filter.stockLevel!.color,
+                          ),
+                          label: Text(filter.stockLevel!.displayName),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () {
+                            ref
+                                .read(filterProvider.notifier)
+                                .setStockLevel(null);
+                          },
+                        ),
+                      ),
+                    if (filter.dateRange != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Chip(
+                          avatar: const Icon(Icons.date_range, size: 16),
+                          label: Text('Date Range'),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () {
+                            ref
+                                .read(filterProvider.notifier)
+                                .setDateRange(null);
+                          },
+                        ),
+                      ),
+                    if (filter.minStock != null || filter.maxStock != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Chip(
+                          avatar: const Icon(Icons.numbers, size: 16),
+                          label: Text(
+                              'Stock: ${filter.minStock?.round() ?? 0}-${filter.maxStock?.round() ?? 1000}'),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () {
+                            ref
+                                .read(filterProvider.notifier)
+                                .setStockRange(null, null);
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
           ),
           Expanded(
             child: itemsAsync.when(
