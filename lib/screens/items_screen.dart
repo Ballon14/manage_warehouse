@@ -36,27 +36,52 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by name or SKU...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          ref.read(itemsSearchProvider.notifier).state = '';
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              onChanged: (value) {
-                ref.read(itemsSearchProvider.notifier).state = value;
-              },
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search by name or SKU...',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            ref.read(itemsSearchProvider.notifier).state = '';
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                ),
+                onChanged: (value) {
+                  ref.read(itemsSearchProvider.notifier).state = value;
+                },
+              ),
             ),
           ),
           Expanded(
@@ -66,15 +91,17 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                   return EmptyStateWidget(
                     icon: Icons.inventory_2_outlined,
                     title: 'Belum Ada Item',
-                    message: 'Belum ada item yang ditambahkan. Tap tombol + untuk menambahkan item baru.',
+                    message:
+                        'Belum ada item yang ditambahkan. Tap tombol + untuk menambahkan item baru.',
                     onAction: () async {
                       final navigator = Navigator.of(context);
                       final messenger = ScaffoldMessenger.of(context);
-                      
+
                       final created = await navigator.push<bool>(
-                        MaterialPageRoute(builder: (_) => const AddItemScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const AddItemScreen()),
                       );
-                      
+
                       if (created == true && mounted) {
                         messenger.showSnackBar(
                           const SnackBar(
@@ -97,7 +124,8 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                         color: Colors.red,
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
-                        child: const Icon(Icons.delete, color: Colors.white, size: 32),
+                        child: const Icon(Icons.delete,
+                            color: Colors.white, size: 32),
                       ),
                       direction: DismissDirection.endToStart,
                       confirmDismiss: (direction) async {
@@ -105,7 +133,8 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Hapus Item?'),
-                            content: Text('Yakin ingin menghapus "${item.name}"?'),
+                            content:
+                                Text('Yakin ingin menghapus "${item.name}"?'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
@@ -127,7 +156,7 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                         try {
                           final itemService = ref.read(itemServiceProvider);
                           await itemService.deleteItem(item.id);
-                          
+
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text('${item.name} dihapus'),
@@ -144,39 +173,88 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                         }
                       },
                       child: Card(
+                        elevation: 3,
                         margin: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
+                        shadowColor: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1),
                         child: ListTile(
-                          leading: const Icon(Icons.inventory_2),
-                          title: Text(item.name),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          leading: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.15),
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .secondary
+                                      .withValues(alpha: 0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.inventory_2,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          title: Text(
+                            item.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           subtitle: Text('SKU: ${item.sku}'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (item.barcode != null)
-                                Chip(
-                                  label: Text(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
                                     'Barcode: ${item.barcode}',
-                                    style: const TextStyle(fontSize: 10),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
+                              const SizedBox(width: 8),
                               PopupMenuButton<String>(
                                 icon: const Icon(Icons.more_vert),
                                 onSelected: (value) async {
                                   if (value == 'edit') {
                                     final navigator = Navigator.of(context);
-                                    final messenger = ScaffoldMessenger.of(context);
-                                    
+                                    final messenger =
+                                        ScaffoldMessenger.of(context);
+
                                     final result = await navigator.push<bool>(
                                       MaterialPageRoute(
-                                        builder: (_) => EditItemScreen(item: item),
+                                        builder: (_) =>
+                                            EditItemScreen(item: item),
                                       ),
                                     );
-                                    
+
                                     if (result == true) {
                                       messenger.showSnackBar(
                                         const SnackBar(
-                                          content: Text('Item berhasil diupdate'),
+                                          content:
+                                              Text('Item berhasil diupdate'),
                                           backgroundColor: Colors.green,
                                         ),
                                       );
@@ -185,7 +263,8 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => ItemDetailScreen(itemId: item.id),
+                                        builder: (_) =>
+                                            ItemDetailScreen(itemId: item.id),
                                       ),
                                     );
                                   }
@@ -236,11 +315,11 @@ class _ItemsScreenState extends ConsumerState<ItemsScreen> {
         onPressed: () async {
           final navigator = Navigator.of(context);
           final messenger = ScaffoldMessenger.of(context);
-          
+
           final created = await navigator.push<bool>(
             MaterialPageRoute(builder: (_) => const AddItemScreen()),
           );
-          
+
           if (created == true && mounted) {
             messenger.showSnackBar(
               const SnackBar(

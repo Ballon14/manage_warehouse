@@ -79,6 +79,25 @@ class AppTheme {
         ),
       ];
 
+  // Elevated shadow for prominent elements
+  static List<BoxShadow> get elevatedShadow => [
+        BoxShadow(
+          color: primaryColor.withValues(alpha: 0.15),
+          blurRadius: 30,
+          offset: const Offset(0, 10),
+          spreadRadius: -5,
+        ),
+      ];
+
+  // Soft shadow for subtle elevation
+  static List<BoxShadow> get softShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ];
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

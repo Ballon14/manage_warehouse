@@ -37,9 +37,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
+
       AppLogger.success('Login successful! User: ${user?.name}', 'Auth');
-      
+
       if (mounted) {
         AppLogger.navigation('Navigating to dashboard...');
         // Explicit navigation as fallback
@@ -55,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (errorMessage.contains('Exception: ')) {
           errorMessage = errorMessage.replaceAll('Exception: ', '');
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -101,7 +101,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -117,9 +120,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     'StockFlow',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -129,7 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
-                  
+
                   // Login Card with responsive constraints
                   Center(
                     child: ConstrainedBox(
@@ -147,87 +150,119 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                labelText: 'Email',
-                                prefixIcon: Icon(Icons.email_outlined),
-                                hintText: 'nama@example.com',
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Masukkan email Anda';
-                                }
-                                if (!value.contains('@')) {
-                                  return 'Masukkan email yang valid';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
+                                TextFormField(
+                                  controller: _emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Email',
+                                    prefixIcon: Icon(Icons.email_outlined),
+                                    hintText: 'nama@example.com',
                                   ),
-                                  onPressed: () {
-                                    setState(() => _obscurePassword = !_obscurePassword);
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Masukkan email Anda';
+                                    }
+                                    if (!value.contains('@')) {
+                                      return 'Masukkan email yang valid';
+                                    }
+                                    return null;
                                   },
                                 ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Masukkan password Anda';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            AnimatedScale(
-                              scale: _isLoading ? 0.95 : 1.0,
-                              duration: const Duration(milliseconds: 100),
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _login,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  minimumSize: const Size(double.infinity, 56),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Masuk',
-                                        style: TextStyle(fontSize: 16),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _passwordController,
+                                  obscureText: _obscurePassword,
+                                  decoration: InputDecoration(
+                                    labelText: 'Password',
+                                    prefixIcon: const Icon(Icons.lock_outline),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
                                       ),
-                              ),
-                            ),
-                            ], // Closing children array for Column
-                          ), // Closing Column
-                        ), // Closing Form
-                      ), // Closing Padding
-                    ), // Closing Card
-                  ), // Closing ConstrainedBox
-                ), // Closing Center (for Card)
-            ], // Closing children array for outer Column
-          ), // Closing outer Column
-        ), // Closing SingleChildScrollView
-      ), // Closing Center (for scroll)
-    ), // Closing SafeArea
-  ), // Closing Container (body)
-); // Closing Scaffold
+                                      onPressed: () {
+                                        setState(() => _obscurePassword =
+                                            !_obscurePassword);
+                                      },
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Masukkan password Anda';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+                                AnimatedScale(
+                                  scale: _isLoading ? 0.95 : 1.0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Theme.of(context).colorScheme.primary,
+                                          Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.4),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton(
+                                      onPressed: _isLoading ? null : _login,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        minimumSize:
+                                            const Size(double.infinity, 56),
+                                      ),
+                                      child: _isLoading
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text(
+                                              'Masuk',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ], // Closing children array for Column
+                            ), // Closing Column
+                          ), // Closing Form
+                        ), // Closing Padding
+                      ), // Closing Card
+                    ), // Closing ConstrainedBox
+                  ), // Closing Center (for Card)
+                ], // Closing children array for outer Column
+              ), // Closing outer Column
+            ), // Closing SingleChildScrollView
+          ), // Closing Center (for scroll)
+        ), // Closing SafeArea
+      ), // Closing Container (body)
+    ); // Closing Scaffold
   }
 }

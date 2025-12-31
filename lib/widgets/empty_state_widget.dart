@@ -1,204 +1,177 @@
 import 'package:flutter/material.dart';
 
-/// A reusable empty state widget for displaying when no data is available.
-/// 
-/// This widget follows Flutter best practices:
-/// - Const constructor for optimal performance
-/// - Semantic labels for accessibility
-/// - Customizable appearance
-/// - Clear visual hierarchy
-/// 
-/// Example usage:
-/// ```dart
-/// EmptyStateWidget(
-///   icon: Icons.inventory_2_outlined,
-///   title: 'No Items',
-///   message: 'Start by adding your first item',
-///   onAction: () => navigateToAddItem(),
-///   actionLabel: 'Add Item',
-/// )
-/// ```
+/// Enhanced empty state widget with animations and gradient styling
 class EmptyStateWidget extends StatelessWidget {
-  /// The icon to display at the top
   final IconData icon;
-  
-  /// The main title text
   final String title;
-  
-  /// The descriptive message text
   final String message;
-  
-  /// Optional callback when action button is pressed
-  final VoidCallback? onAction;
-  
-  /// Optional label for the action button (defaults to 'Tambah')
   final String? actionLabel;
-  
-  /// Optional custom icon color (defaults to grey)
-  final Color? iconColor;
-  
-  /// Optional icon for the action button (defaults to Icons.add)
-  final IconData? actionIcon;
-  
-  /// Optional semantic label for accessibility
-  final String? semanticLabel;
+  final VoidCallback? onAction;
 
-  /// Creates an empty state widget.
-  /// 
-  /// [icon], [title], and [message] are required.
-  /// [onAction] and [actionLabel] are optional for displaying an action button.
   const EmptyStateWidget({
     super.key,
     required this.icon,
     required this.title,
     required this.message,
-    this.onAction,
     this.actionLabel,
-    this.iconColor,
-    this.actionIcon,
-    this.semanticLabel,
+    this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Semantics(
-      label: semanticLabel ?? 
-             'Empty state: $title. $message${onAction != null ? ". Tap to ${actionLabel ?? "add"}." : ""}',
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon
-              Icon(
-                icon,
-                size: 80,
-                color: iconColor ?? Colors.grey.shade300,
-                semanticLabel: 'Empty state icon',
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Title
-              Text(
-                title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              
-              const SizedBox(height: 8),
-              
-              // Message
-              Text(
-                message,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              
-              // Optional action button
-              if (onAction != null) ...[
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: onAction,
-                  icon: Icon(actionIcon ?? Icons.add),
-                  label: Text(actionLabel ?? 'Tambah'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(48.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animated icon container
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.15),
+                          Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withValues(alpha: 0.1),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.2),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                ),
-              ],
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+
+            // Fade in title
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOut,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+
+            // Fade in message
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOut,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Text(
+                    message,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                          height: 1.5,
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                  ),
+                );
+              },
+            ),
+
+            if (onAction != null && actionLabel != null) ...[
+              const SizedBox(height: 32),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.easeOut,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 20 * (1 - value)),
+                    child: Opacity(
+                      opacity: value,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton.icon(
+                          onPressed: onAction,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                          ),
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          label: Text(
+                            actionLabel!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
-          ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-/// A specialized empty state widget for search results.
-/// 
-/// Example:
-/// ```dart
-/// EmptySearchState(
-///   query: searchQuery,
-///   onClearSearch: () => clearSearch(),
-/// )
-/// ```
-class EmptySearchState extends StatelessWidget {
-  /// The search query that returned no results
-  final String query;
-  
-  /// Callback to clear the search
-  final VoidCallback? onClearSearch;
-
-  const EmptySearchState({
-    super.key,
-    required this.query,
-    this.onClearSearch,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return EmptyStateWidget(
-      icon: Icons.search_off,
-      title: 'Tidak Ada Hasil',
-      message: 'Tidak ditemukan hasil untuk "$query"',
-      onAction: onClearSearch,
-      actionLabel: 'Hapus Pencarian',
-      actionIcon: Icons.clear,
-      semanticLabel: 'No search results found for $query',
-    );
-  }
-}
-
-/// A specialized empty state widget for errors.
-/// 
-/// Example:
-/// ```dart
-/// ErrorStateWidget(
-///   errorMessage: 'Failed to load data',
-///   onRetry: () => retryLoading(),
-/// )
-/// ```
-class ErrorStateWidget extends StatelessWidget {
-  /// The error message to display
-  final String errorMessage;
-  
-  /// Optional callback to retry the failed operation
-  final VoidCallback? onRetry;
-  
-  /// Optional custom title (defaults to 'Terjadi Kesalahan')
-  final String? title;
-
-  const ErrorStateWidget({
-    super.key,
-    required this.errorMessage,
-    this.onRetry,
-    this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return EmptyStateWidget(
-      icon: Icons.error_outline,
-      iconColor: Colors.red.shade300,
-      title: title ?? 'Terjadi Kesalahan',
-      message: errorMessage,
-      onAction: onRetry,
-      actionLabel: 'Coba Lagi',
-      actionIcon: Icons.refresh,
-      semanticLabel: 'Error: $errorMessage',
     );
   }
 }
