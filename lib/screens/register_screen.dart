@@ -48,10 +48,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       );
 
       if (!mounted) return;
-      
+
       final messenger = ScaffoldMessenger.of(context);
       final navigator = Navigator.of(context);
-      
+
       messenger.showSnackBar(
         const SnackBar(
           content: Text('Akun berhasil dibuat'),
@@ -62,13 +62,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       navigator.pop();
     } catch (e) {
       if (!mounted) return;
-      
+
       // Extract clean error message
       String errorMessage = e.toString();
       if (errorMessage.contains('Exception: ')) {
         errorMessage = errorMessage.replaceAll('Exception: ', '');
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -100,131 +100,139 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              Text(
-                'Warehouse Registration',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  prefixIcon: Icon(Icons.person),
-                ),
-                validator: (value) =>
-                    Validators.validateRequired(value, 'Nama'),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                ),
-                validator: Validators.validateEmail,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedRole,
-                decoration: const InputDecoration(
-                  labelText: 'Role',
-                  prefixIcon: Icon(Icons.badge),
-                ),
-                items: _roles
-                    .map(
-                      (role) => DropdownMenuItem(
-                        value: role,
-                        child: Text(role.toUpperCase()),
+                  Text(
+                    'Warehouse Registration',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name',
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (value) =>
+                        Validators.validateRequired(value, 'Nama'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                    validator: Validators.validateEmail,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Role',
+                      prefixIcon: Icon(Icons.badge),
+                    ),
+                    items: _roles
+                        .map(
+                          (role) => DropdownMenuItem(
+                            value: role,
+                            child: Text(role.toUpperCase()),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedRole = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedRole = value);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
                     ),
-                    onPressed: () => setState(
-                      () => _obscurePassword = !_obscurePassword,
-                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _passwordStrength =
+                            Validators.getPasswordStrength(value);
+                      });
+                    },
+                    validator: (value) =>
+                        Validators.validatePassword(value, requireStrong: true),
                   ),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _passwordStrength = Validators.getPasswordStrength(value);
-                  });
-                },
-                validator: (value) =>
-                    Validators.validatePassword(value, requireStrong: true),
-              ),
-              if (_passwordController.text.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _buildPasswordStrengthIndicator(),
-              ],
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: _obscureConfirmPassword,
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                  if (_passwordController.text.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _buildPasswordStrengthIndicator(),
+                  ],
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        ),
+                      ),
                     ),
-                    onPressed: () => setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    ),
+                    validator: (value) {
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                validator: (value) {
-                  if (value != _passwordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _register,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                     : const Text('Create Account'),
-              ),
-            ], // Closing children array for Column
-          ), // Closing Column
-        ), // Closing Form
-      ), // Closing SingleChildScrollView
-    ), // Closing ConstrainedBox
-  ), // Closing Center (body)
-); // Closing Scaffold
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _register,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Create Account'),
+                  ),
+                ], // Closing children array for Column
+              ), // Closing Column
+            ), // Closing Form
+          ), // Closing SingleChildScrollView
+        ), // Closing ConstrainedBox
+      ), // Closing Center (body)
+    ); // Closing Scaffold
   }
 
   Widget _buildPasswordStrengthIndicator() {
-    final strengthLabels = ['Sangat Lemah', 'Lemah', 'Cukup', 'Kuat', 'Sangat Kuat'];
+    final strengthLabels = [
+      'Sangat Lemah',
+      'Lemah',
+      'Cukup',
+      'Kuat',
+      'Sangat Kuat'
+    ];
     final strengthColors = [
       Colors.red,
       Colors.orange,

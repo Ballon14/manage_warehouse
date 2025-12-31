@@ -41,4 +41,24 @@ class ItemModel {
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
+
+  ItemModel copyWith({
+    String? id,
+    String? sku,
+    String? name,
+    String? barcode,
+    double? reorderLevel,
+    String? uom,
+    DateTime? createdAt,
+  }) {
+    return ItemModel(
+      id: id ?? this.id,
+      sku: sku ?? this.sku,
+      name: name ?? this.name,
+      barcode: barcode ?? this.barcode,
+      reorderLevel: reorderLevel ?? this.reorderLevel,
+      uom: uom ?? this.uom,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

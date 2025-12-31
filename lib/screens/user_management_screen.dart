@@ -96,7 +96,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: roleColor.withOpacity(0.2),
+                    backgroundColor: roleColor.withValues(alpha: 0.2),
                     child: Icon(roleIcon, color: roleColor),
                   ),
                   title: Row(

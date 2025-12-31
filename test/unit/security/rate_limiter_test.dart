@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manage_your_logistic/core/security/rate_limiter.dart';
+import 'package:stockflow/core/security/rate_limiter.dart';
 
 void main() {
   group('LoginRateLimiter', () {

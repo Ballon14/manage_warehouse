@@ -1,5 +1,5 @@
-import 'package:manage_your_logistic/repositories/item_repository.dart';
-import 'package:manage_your_logistic/models/item_model.dart';
+import 'package:stockflow/repositories/item_repository.dart';
+import 'package:stockflow/models/item_model.dart';
 
 /// Mock implementation of ItemRepository for testing
 class MockItemRepository implements ItemRepository {

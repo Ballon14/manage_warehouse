@@ -22,19 +22,18 @@ class AuthService {
   Future<UserModel?> login(String email, String password) async {
     // Sanitize inputs
     final sanitizedEmail = Validators.sanitizeInput(email).toLowerCase().trim();
-    
+
     // Check rate limiting
     if (!_rateLimiter.isLoginAllowed(sanitizedEmail)) {
       final lockoutEnd = _rateLimiter.getLockoutEnd(sanitizedEmail);
       if (lockoutEnd != null) {
         final remaining = lockoutEnd.difference(DateTime.now()).inMinutes;
         throw Exception(
-          ErrorMessages.accountLocked +
-              ' (${remaining + 1} menit lagi)',
+          '${ErrorMessages.accountLocked} (${remaining + 1} menit lagi)',
         );
       }
     }
-    
+
     try {
       AppLogger.auth('Attempting login for $sanitizedEmail');
       final credential = await _auth.signInWithEmailAndPassword(
@@ -43,10 +42,12 @@ class AuthService {
       );
 
       if (credential.user != null) {
-        AppLogger.success('Firebase auth successful, fetching user data...', 'Auth');
+        AppLogger.success(
+            'Firebase auth successful, fetching user data...', 'Auth');
         final userData = await getUserData(credential.user!.uid);
         if (userData != null) {
-          AppLogger.success('User data fetched successfully - ${userData.name}', 'Auth');
+          AppLogger.success(
+              'User data fetched successfully - ${userData.name}', 'Auth');
           // Record successful login
           _rateLimiter.recordAttempt(sanitizedEmail, success: true);
         } else {
@@ -59,7 +60,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       // Record failed attempt
       _rateLimiter.recordAttempt(sanitizedEmail, success: false);
-      
+
       AppLogger.error('FirebaseAuthException - ${e.code}', 'Auth');
       // Handle specific Firebase auth errors
       switch (e.code) {
@@ -97,13 +98,14 @@ class AuthService {
     // Sanitize inputs
     final sanitizedEmail = Validators.sanitizeInput(email).toLowerCase().trim();
     final sanitizedName = Validators.sanitizeInput(name).trim();
-    
+
     // Validate password strength
-    final passwordError = Validators.validatePassword(password, requireStrong: true);
+    final passwordError =
+        Validators.validatePassword(password, requireStrong: true);
     if (passwordError != null) {
       throw Exception(passwordError);
     }
-    
+
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: sanitizedEmail,
@@ -151,16 +153,15 @@ class AuthService {
   Future<UserModel?> getUserData(String uid) async {
     try {
       AppLogger.database('Fetching user data for uid: $uid');
-      final doc = await _firestore
-          .collection(FirestorePaths.users)
-          .doc(uid)
-          .get();
+      final doc =
+          await _firestore.collection(FirestorePaths.users).doc(uid).get();
 
       if (doc.exists) {
         AppLogger.success('User document found in Firestore', 'Database');
         return UserModel.fromFirestore(doc.data()!, uid);
       }
-      AppLogger.warning('User document does NOT exist in Firestore!', 'Database');
+      AppLogger.warning(
+          'User document does NOT exist in Firestore!', 'Database');
       return null;
     } catch (e) {
       AppLogger.error('Error fetching user data', 'Database', e);
@@ -169,7 +170,8 @@ class AuthService {
   }
 
   // Update user profile
-  Future<UserModel> updateProfile(String uid, String newName, String newEmail) async {
+  Future<UserModel> updateProfile(
+      String uid, String newName, String newEmail) async {
     try {
       final user = _auth.currentUser;
       if (user == null) {
@@ -218,13 +220,11 @@ class AuthService {
   bool get isAuthenticated => _auth.currentUser != null;
 
   // ============ ADMIN USER MANAGEMENT ============
-  
+
   // Get all users stream (admin only)
   Stream<List<UserModel>> getAllUsers() {
-    return _firestore
-        .collection(FirestorePaths.users)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
+    return _firestore.collection(FirestorePaths.users).snapshots().map(
+        (snapshot) => snapshot.docs
             .map((doc) => UserModel.fromFirestore(doc.data(), doc.id))
             .toList());
   }
@@ -239,13 +239,14 @@ class AuthService {
     // Sanitize inputs
     final sanitizedEmail = Validators.sanitizeInput(email).toLowerCase().trim();
     final sanitizedName = Validators.sanitizeInput(name).trim();
-    
+
     // Validate password strength
-    final passwordError = Validators.validatePassword(password, requireStrong: false);
+    final passwordError =
+        Validators.validatePassword(password, requireStrong: false);
     if (passwordError != null) {
       throw Exception(passwordError);
     }
-    
+
     try {
       // Create user in Firebase Auth
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -302,7 +303,7 @@ class AuthService {
     try {
       // Delete from Firestore
       await _firestore.collection(FirestorePaths.users).doc(uid).delete();
-      
+
       // Note: Deleting from Firebase Auth requires admin SDK on backend
       // For now, we only delete from Firestore
       // User won't be able to login as their Firestore data is gone
@@ -311,4 +312,3 @@ class AuthService {
     }
   }
 }
-

@@ -186,7 +186,7 @@ class _InboundScreenState extends ConsumerState<InboundScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF10B981).withOpacity(0.1),
+                      const Color(0xFF10B981).withValues(alpha: 0.1),
                       Colors.white,
                     ],
                   ),

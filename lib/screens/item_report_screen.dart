@@ -20,17 +20,15 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
 
   List<ItemModel> _getSortedItems(List<ItemModel> items) {
     final sorted = List<ItemModel>.from(items);
-    
+
     switch (_sortBy) {
       case 'name':
-        sorted.sort((a, b) => _ascending 
-            ? a.name.compareTo(b.name)
-            : b.name.compareTo(a.name));
+        sorted.sort((a, b) =>
+            _ascending ? a.name.compareTo(b.name) : b.name.compareTo(a.name));
         break;
       case 'sku':
-        sorted.sort((a, b) => _ascending
-            ? a.sku.compareTo(b.sku)
-            : b.sku.compareTo(a.sku));
+        sorted.sort((a, b) =>
+            _ascending ? a.sku.compareTo(b.sku) : b.sku.compareTo(a.sku));
         break;
       case 'createdAt':
         sorted.sort((a, b) => _ascending
@@ -38,48 +36,61 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
             : b.createdAt.compareTo(a.createdAt));
         break;
     }
-    
+
     return sorted;
   }
 
   List<ItemModel> _filterByPeriod(List<ItemModel> items) {
     final now = DateTime.now();
-    
+
     switch (_selectedPeriod) {
       case ReportPeriod.today:
         return items.where((item) {
           final itemDate = item.createdAt;
           return itemDate.year == now.year &&
-                 itemDate.month == now.month &&
-                 itemDate.day == now.day;
+              itemDate.month == now.month &&
+              itemDate.day == now.day;
         }).toList();
-      
+
       case ReportPeriod.thisWeek:
         final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
         final endOfWeek = startOfWeek.add(const Duration(days: 6));
-        return items.where((item) => 
-          item.createdAt.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
-          item.createdAt.isBefore(endOfWeek.add(const Duration(days: 1)))).toList();
-      
+        return items
+            .where((item) =>
+                item.createdAt
+                    .isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+                item.createdAt.isBefore(endOfWeek.add(const Duration(days: 1))))
+            .toList();
+
       case ReportPeriod.thisMonth:
-        return items.where((item) =>
-          item.createdAt.month == now.month &&
-          item.createdAt.year == now.year).toList();
-      
+        return items
+            .where((item) =>
+                item.createdAt.month == now.month &&
+                item.createdAt.year == now.year)
+            .toList();
+
       case ReportPeriod.thisYear:
-        return items.where((item) =>
-          item.createdAt.year == now.year).toList();
-      
+        return items.where((item) => item.createdAt.year == now.year).toList();
+
       case ReportPeriod.all:
-      default:
         return items;
     }
   }
 
   String _formatDateIndonesian(DateTime date) {
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -92,7 +103,16 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: ReportPeriod.values.map((period) {
-            return RadioListTile<ReportPeriod>(
+            return ListTile(
+              leading: Radio<ReportPeriod>(
+                value: period,
+                groupValue: _selectedPeriod,
+                toggleable: false,
+                onChanged: (value) {
+                  setState(() => _selectedPeriod = value!);
+                  Navigator.pop(context);
+                },
+              ),
               title: Row(
                 children: [
                   Icon(period.icon, size: 20),
@@ -100,10 +120,8 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                   Text(period.label),
                 ],
               ),
-              value: period,
-              groupValue: _selectedPeriod,
-              onChanged: (value) {
-                setState(() => _selectedPeriod = value!);
+              onTap: () {
+                setState(() => _selectedPeriod = period);
                 Navigator.pop(context);
               },
             );
@@ -123,13 +141,13 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
     try {
       // Generate filename with period
       final filename = ExportService.generateFilename(_selectedPeriod);
-      
+
       // Generate CSV
       final csv = ExportService.generateCSV(items, _selectedPeriod.label);
-      
+
       // Export to file
       await ExportService.exportToFile(filename, csv);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Laporan berhasil di-export: $filename')),
@@ -151,7 +169,7 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
       itemBuilder: (context, index) {
         final item = items[index];
         final dateStr = DateFormat('dd/MM/yyyy').format(item.createdAt);
-        
+
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: Padding(
@@ -254,7 +272,7 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                 dataRowMinHeight: 44,
                 dataRowMaxHeight: 56,
                 headingRowColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 ),
                 border: TableBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -332,8 +350,9 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                 rows: items.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
-                  final dateStr = DateFormat('dd/MM/yyyy').format(item.createdAt);
-                  
+                  final dateStr =
+                      DateFormat('dd/MM/yyyy').format(item.createdAt);
+
                   return DataRow(
                     cells: [
                       DataCell(
@@ -406,7 +425,8 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
             const Text('Laporan Data Barang', style: TextStyle(fontSize: 18)),
             Text(
               _selectedPeriod.label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
             ),
           ],
         ),
@@ -434,8 +454,10 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                 value: 'name',
                 child: Row(
                   children: [
-                    Icon(_sortBy == 'name' 
-                        ? (_ascending ? Icons.arrow_upward : Icons.arrow_downward)
+                    Icon(_sortBy == 'name'
+                        ? (_ascending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward)
                         : Icons.sort_by_alpha),
                     const SizedBox(width: 8),
                     const Text('Urutkan Nama'),
@@ -447,7 +469,9 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                 child: Row(
                   children: [
                     Icon(_sortBy == 'sku'
-                        ? (_ascending ? Icons.arrow_upward : Icons.arrow_downward)
+                        ? (_ascending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward)
                         : Icons.qr_code),
                     const SizedBox(width: 8),
                     const Text('Urutkan SKU'),
@@ -459,7 +483,9 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                 child: Row(
                   children: [
                     Icon(_sortBy == 'createdAt'
-                        ? (_ascending ? Icons.arrow_upward : Icons.arrow_downward)
+                        ? (_ascending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward)
                         : Icons.calendar_today),
                     const SizedBox(width: 8),
                     const Text('Urutkan Tanggal'),
@@ -474,13 +500,14 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
         data: (items) {
           // Apply period filter first
           final filteredItems = _filterByPeriod(items);
-          
+
           if (filteredItems.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                  const Icon(Icons.inventory_2_outlined,
+                      size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
                     'Tidak ada data untuk ${_selectedPeriod.label}',
@@ -514,7 +541,10 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
                       Colors.white,
                     ],
                   ),
@@ -524,8 +554,8 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                     Text(
                       'LAPORAN DATA BARANG',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -542,7 +572,8 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(20),
@@ -557,7 +588,8 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                         ),
                         const SizedBox(width: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.secondary,
                             borderRadius: BorderRadius.circular(20),
@@ -575,14 +607,14 @@ class _ItemReportScreenState extends ConsumerState<ItemReportScreen> {
                   ],
                 ),
               ),
-              
+
               // Items List - Responsive
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     // Use card layout for mobile, table for larger screens
                     final isMobile = constraints.maxWidth < 600;
-                    
+
                     if (isMobile) {
                       return _buildMobileView(sortedItems);
                     } else {

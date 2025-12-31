@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Modern application theme with enhanced visual design
-/// 
+///
 /// Features:
 /// - Material 3 design
 /// - Premium color palette
@@ -11,16 +11,17 @@ import 'package:flutter/services.dart';
 /// - Glassmorphism effects
 class AppTheme {
   // Modern gradient color palette
-  static const primaryColor = Color(0xFF6366F1); // Indigo - Modern & Professional
+  static const primaryColor =
+      Color(0xFF6366F1); // Indigo - Modern & Professional
   static const primaryDark = Color(0xFF4F46E5);
   static const primaryLight = Color(0xFF818CF8);
-  
+
   static const secondaryColor = Color(0xFF8B5CF6); // Purple - Creative touch
   static const secondaryDark = Color(0xFF7C3AED);
   static const secondaryLight = Color(0xFFA78BFA);
-  
+
   static const accentColor = Color(0xFF06B6D4); // Cyan - Fresh accent
-  
+
   // Status colors
   static const successColor = Color(0xFF10B981); // Green
   static const successLight = Color(0xFF34D399);
@@ -29,32 +30,32 @@ class AppTheme {
   static const errorColor = Color(0xFFEF4444); // Red
   static const errorLight = Color(0xFFF87171);
   static const infoColor = Color(0xFF3B82F6); // Blue
-  
+
   // Neutral palette
   static const backgroundColor = Color(0xFFF8FAFC); // Off-white
   static const surfaceColor = Colors.white;
   static const cardColor = Colors.white;
   static const dividerColor = Color(0xFFE2E8F0);
-  
+
   // Text colors
   static const textPrimary = Color(0xFF0F172A);
   static const textSecondary = Color(0xFF475569);
   static const textTertiary = Color(0xFF94A3B8);
   static const textHint = Color(0xFFCBD5E1);
-  
+
   // Gradients
   static const primaryGradient = LinearGradient(
     colors: [primaryColor, primaryDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const accentGradient = LinearGradient(
     colors: [accentColor, primaryColor],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const successGradient = LinearGradient(
     colors: [successColor, Color(0xFF059669)],
     begin: Alignment.topLeft,
@@ -63,26 +64,26 @@ class AppTheme {
 
   // Shadows
   static List<BoxShadow> get cardShadow => [
-    BoxShadow(
-      color: primaryColor.withOpacity(0.08),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
-    ),
-  ];
-  
+        BoxShadow(
+          color: primaryColor.withValues(alpha: 0.08),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
+        ),
+      ];
+
   static List<BoxShadow> get buttonShadow => [
-    BoxShadow(
-      color: primaryColor.withOpacity(0.2),
-      blurRadius: 16,
-      offset: const Offset(0, 4),
-    ),
-  ];
+        BoxShadow(
+          color: primaryColor.withValues(alpha: 0.2),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ];
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Color scheme
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
@@ -98,10 +99,10 @@ class AppTheme {
         onSurface: textPrimary,
         onError: Colors.white,
       ),
-      
+
       scaffoldBackgroundColor: backgroundColor,
       dividerColor: dividerColor,
-      
+
       // App Bar Theme - Premium look
       appBarTheme: AppBarTheme(
         elevation: 0,
@@ -121,23 +122,23 @@ class AppTheme {
           size: 24,
         ),
       ),
-      
+
       // Card Theme - Modern cards with subtle shadow
-      cardTheme: CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 0,
-        shadowColor: primaryColor.withOpacity(0.1),
+        shadowColor: Color.fromRGBO(99, 102, 241, 0.1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
         color: cardColor,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      
+
       // Elevated Button - Premium gradient style
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          shadowColor: primaryColor.withOpacity(0.3),
+          shadowColor: primaryColor.withValues(alpha: 0.3),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -149,7 +150,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Outlined Button - Clean modern look
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -165,7 +166,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Text Button
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -176,7 +177,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Floating Action Button - Gradient style
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         elevation: 4,
@@ -185,7 +186,7 @@ class AppTheme {
         ),
         iconSize: 28,
       ),
-      
+
       // Input fields - Modern clean design
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -210,7 +211,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: errorColor, width: 2.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         hintStyle: const TextStyle(
           color: textHint,
           fontSize: 15,
@@ -221,10 +223,10 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      
+
       // Chip Theme
       chipTheme: ChipThemeData(
-        backgroundColor: primaryLight.withOpacity(0.1),
+        backgroundColor: primaryLight.withValues(alpha: 0.1),
         deleteIconColor: textSecondary,
         labelStyle: const TextStyle(
           color: primaryColor,
@@ -235,7 +237,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      
+
       // Bottom Navigation Bar
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         elevation: 0,
@@ -252,16 +254,16 @@ class AppTheme {
         ),
         type: BottomNavigationBarType.fixed,
       ),
-      
+
       // Dialog Theme
-      dialogTheme: DialogTheme(
+      dialogTheme: const DialogThemeData(
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.all(Radius.circular(24)),
         ),
         backgroundColor: surfaceColor,
       ),
-      
+
       // Snackbar Theme
       snackBarTheme: SnackBarThemeData(
         elevation: 0,
@@ -274,20 +276,20 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      
+
       // Progress Indicator
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: primaryColor,
         linearTrackColor: dividerColor,
       ),
-      
+
       // Divider Theme
       dividerTheme: const DividerThemeData(
         color: dividerColor,
         thickness: 1,
         space: 1,
       ),
-      
+
       // List Tile Theme
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -296,7 +298,7 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
-      
+
       // Text Theme - Modern typography
       textTheme: const TextTheme(
         displayLarge: TextStyle(
@@ -401,12 +403,12 @@ class AppTheme {
   static const Duration fastAnimation = Duration(milliseconds: 150);
   static const Duration normalAnimation = Duration(milliseconds: 300);
   static const Duration slowAnimation = Duration(milliseconds: 500);
-  
+
   // Animation curves
   static const Curve defaultCurve = Curves.easeInOut;
   static const Curve bounceCurve = Curves.elasticOut;
   static const Curve smoothCurve = Curves.easeOutCubic;
-  
+
   // Spacing
   static const double spacing4 = 4.0;
   static const double spacing8 = 8.0;
@@ -416,14 +418,14 @@ class AppTheme {
   static const double spacing24 = 24.0;
   static const double spacing32 = 32.0;
   static const double spacing48 = 48.0;
-  
+
   // Border radius
   static const double radiusSmall = 8.0;
   static const double radiusMedium = 12.0;
   static const double radiusLarge = 16.0;
   static const double radiusXLarge = 20.0;
   static const double radiusRound = 999.0;
-  
+
   // Icon sizes
   static const double iconSmall = 16.0;
   static const double iconMedium = 24.0;

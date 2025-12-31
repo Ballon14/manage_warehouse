@@ -1,5 +1,6 @@
-/// Custom exceptions for the application
-/// These are thrown in the data layer and caught/converted to Failures in the repository layer
+// Custom exceptions for the application
+// These are thrown in the data layer and caught/converted to Failures in the repository layer
+library;
 
 class ServerException implements Exception {
   final String message;

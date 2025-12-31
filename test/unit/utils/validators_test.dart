@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manage_your_logistic/core/utils/validators.dart';
+import 'package:stockflow/core/utils/validators.dart';
 
 void main() {
   group('Validators', () {

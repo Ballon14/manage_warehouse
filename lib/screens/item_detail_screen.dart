@@ -74,7 +74,7 @@ class ItemDetailScreen extends ConsumerWidget {
                               gradient: LinearGradient(
                                 colors: [
                                   Theme.of(context).primaryColor,
-                                  Theme.of(context).primaryColor.withOpacity(0.7),
+                                  Theme.of(context).primaryColor.withValues(alpha: 0.7),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -89,7 +89,7 @@ class ItemDetailScreen extends ConsumerWidget {
                                     Container(
                                       padding: EdgeInsets.all(isDesktop ? 20 : 16),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
+                                        color: Colors.white.withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Icon(
@@ -116,7 +116,7 @@ class ItemDetailScreen extends ConsumerWidget {
                                             'SKU: ${item.sku}',
                                             style: TextStyle(
                                               fontSize: isDesktop ? 16 : 14,
-                                              color: Colors.white.withOpacity(0.9),
+                                              color: Colors.white.withValues(alpha: 0.9),
                                             ),
                                           ),
                                         ],
@@ -542,8 +542,8 @@ class ItemDetailScreen extends ConsumerWidget {
                     ListTile(
                       leading: CircleAvatar(
                         backgroundColor: isInbound
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.orange.withValues(alpha: 0.1),
                         child: Icon(
                           isInbound ? Icons.arrow_downward : Icons.arrow_upward,
                           color: isInbound ? Colors.green : Colors.orange,

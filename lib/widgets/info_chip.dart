@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 /// A reusable info chip widget for displaying status or category.
-/// 
+///
 /// This widget provides:
 /// - Consistent styling
 /// - Multiple color variants
 /// - Optional delete callback
 /// - Accessibility support
-/// 
+///
 /// Example usage:
 /// ```dart
 /// InfoChip(
@@ -18,19 +18,19 @@ import 'package:flutter/material.dart';
 class InfoChip extends StatelessWidget {
   /// The chip label text
   final String label;
-  
+
   /// Chip color variant
   final ChipVariant variant;
-  
+
   /// Optional icon
   final IconData? icon;
-  
+
   /// Optional delete callback
   final VoidCallback? onDeleted;
-  
+
   /// Optional tap callback
   final VoidCallback? onTap;
-  
+
   /// Whether to show bold text
   final bool bold;
 
@@ -47,7 +47,7 @@ class InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = _getColors(context);
-    
+
     final chip = Chip(
       label: Text(
         label,
@@ -70,7 +70,7 @@ class InfoChip extends StatelessWidget {
       onDeleted: onDeleted,
       deleteIconColor: colors.textColor,
     );
-    
+
     if (onTap != null) {
       return Semantics(
         button: true,
@@ -82,13 +82,13 @@ class InfoChip extends StatelessWidget {
         ),
       );
     }
-    
+
     return Semantics(
       label: '$label chip',
       child: chip,
     );
   }
-  
+
   _ChipColors _getColors(BuildContext context) {
     switch (variant) {
       case ChipVariant.success:
@@ -112,7 +112,6 @@ class InfoChip extends StatelessWidget {
           textColor: Colors.blue.shade800,
         );
       case ChipVariant.neutral:
-      default:
         return _ChipColors(
           backgroundColor: Colors.grey.shade200,
           textColor: Colors.grey.shade800,
@@ -125,16 +124,16 @@ class InfoChip extends StatelessWidget {
 enum ChipVariant {
   /// Neutral/default color
   neutral,
-  
+
   /// Success/positive color (green)
   success,
-  
+
   /// Error/negative color (red)
   error,
-  
+
   /// Warning color (orange)
   warning,
-  
+
   /// Info color (blue)
   info,
 }
@@ -150,7 +149,7 @@ class _ChipColors {
 }
 
 /// A specialized status chip with predefined states.
-/// 
+///
 /// Example:
 /// ```dart
 /// StatusChip(status: ItemStatus.active)
@@ -158,7 +157,7 @@ class _ChipColors {
 class StatusChip extends StatelessWidget {
   /// The status to display
   final String status;
-  
+
   /// Whether the status is active/positive
   final bool isActive;
 
@@ -179,7 +178,7 @@ class StatusChip extends StatelessWidget {
 }
 
 /// A chip for displaying stock level status.
-/// 
+///
 /// Example:
 /// ```dart
 /// StockLevelChip(
@@ -190,7 +189,7 @@ class StatusChip extends StatelessWidget {
 class StockLevelChip extends StatelessWidget {
   /// Current stock quantity
   final double quantity;
-  
+
   /// Reorder level threshold
   final double reorderLevel;
 
@@ -204,7 +203,7 @@ class StockLevelChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final ChipVariant variant;
     final IconData icon;
-    
+
     if (quantity <= 0) {
       variant = ChipVariant.error;
       icon = Icons.close;
@@ -215,7 +214,7 @@ class StockLevelChip extends StatelessWidget {
       variant = ChipVariant.success;
       icon = Icons.check;
     }
-    
+
     return InfoChip(
       label: 'Stok: ${quantity.toInt()}',
       variant: variant,

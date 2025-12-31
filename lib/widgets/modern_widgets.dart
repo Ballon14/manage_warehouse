@@ -121,15 +121,15 @@ class GlassCard extends StatelessWidget {
       margin: margin ?? const EdgeInsets.all(AppTheme.spacing16),
       padding: padding ?? const EdgeInsets.all(AppTheme.spacing20),
       decoration: BoxDecoration(
-        color: color ?? Colors.white.withOpacity(0.8),
+        color: color ?? Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.08),
+            color: AppTheme.primaryColor.withValues(alpha: 0.08),
             blurRadius: 32,
             offset: const Offset(0, 12),
           ),
@@ -185,7 +185,7 @@ class ModernStatCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(AppTheme.spacing12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                       ),
                       child: Icon(
@@ -197,7 +197,7 @@ class ModernStatCard extends StatelessWidget {
                     if (onTap != null)
                       Icon(
                         Icons.arrow_forward_ios,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         size: AppTheme.iconSmall,
                       ),
                   ],
@@ -206,7 +206,7 @@ class ModernStatCard extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -227,7 +227,7 @@ class ModernStatCard extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
