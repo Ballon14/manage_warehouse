@@ -80,7 +80,7 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
     // Cache context before async gap
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    
+
     // Use BarcodeScannerScreen for consistency
     final barcode = await navigator.push<String>(
       MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
@@ -104,7 +104,7 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
 
       // Use mounted check and don't use context after async gap
       if (!mounted) return;
-      
+
       final countedQty = await showDialog<double>(
         context: context,
         builder: (builderContext) {
@@ -202,6 +202,7 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Stock Opname'),
+        elevation: 0,
       ),
       body: Center(
         child: ConstrainedBox(
@@ -211,127 +212,174 @@ class _StockOpnameScreenState extends ConsumerState<StockOpnameScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-            if (!_isSessionActive) ...[
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.inventory_2,
-                          size: 64, color: Colors.purple),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Location ID',
-                          prefixIcon: Icon(Icons.location_on),
-                          border: OutlineInputBorder(),
+                if (!_isSessionActive) ...[
+                  Card(
+                    elevation: 2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                            Colors.white,
+                          ],
                         ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _createSession,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: const Text('Create Session'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              Card(
-                color: Colors.green.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.check_circle,
-                          color: Colors.green, size: 48),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Session Active',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text('Location: $_locationId'),
-                      Text('Session: ${_sessionId!.substring(0, 8)}...'),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _scanAndCount,
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Scan & Count Item'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (_sessionId != null) ...[
-                Text(
-                  'Counted Items',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final linesAsync =
-                        ref.watch(inventoryCountLinesProvider(_sessionId!));
-                    return linesAsync.when(
-                      data: (lines) {
-                        if (lines.isEmpty) {
-                          return const Card(
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Text('No items counted yet'),
-                            ),
-                          );
-                        }
-                        return Column(
-                          children: lines.map((line) {
-                            return Card(
-                              child: ListTile(
-                                title: Text('Item: ${line.itemId}'),
-                                subtitle: Text(
-                                    'Counted: ${line.countedQty} | System: ${line.systemQty}'),
-                                trailing: Text(
-                                  'Variance: ${line.variance > 0 ? '+' : ''}${line.variance}',
-                                  style: TextStyle(
-                                    color: line.variance == 0
-                                        ? Colors.green
-                                        : Colors.orange,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B5CF6),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.inventory_2_rounded,
+                                    size: 32, color: Colors.white),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Stock Opname',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Buat sesi untuk mulai stock opname',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _locationController,
+                            decoration: const InputDecoration(
+                              labelText: 'Location ID',
+                              prefixIcon: Icon(Icons.location_on),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _createSession,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: const Color(0xFF8B5CF6),
+                            ),
+                            child: const Text('Create Session'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  Card(
+                    color: Colors.green.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.check_circle,
+                              color: Colors.green, size: 48),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Session Active',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          Text('Location: $_locationId'),
+                          Text('Session: ${_sessionId!.substring(0, 8)}...'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _scanAndCount,
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: const Text('Scan & Count Item'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_sessionId != null) ...[
+                    Text(
+                      'Counted Items',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final linesAsync =
+                            ref.watch(inventoryCountLinesProvider(_sessionId!));
+                        return linesAsync.when(
+                          data: (lines) {
+                            if (lines.isEmpty) {
+                              return const Card(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Text('No items counted yet'),
+                                ),
+                              );
+                            }
+                            return Column(
+                              children: lines.map((line) {
+                                return Card(
+                                  child: ListTile(
+                                    title: Text('Item: ${line.itemId}'),
+                                    subtitle: Text(
+                                        'Counted: ${line.countedQty} | System: ${line.systemQty}'),
+                                    trailing: Text(
+                                      'Variance: ${line.variance > 0 ? '+' : ''}${line.variance}',
+                                      style: TextStyle(
+                                        color: line.variance == 0
+                                            ? Colors.green
+                                            : Colors.orange,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             );
-                          }).toList(),
+                          },
+                          loading: () => const CircularProgressIndicator(),
+                          error: (error, stack) => Text('Error: $error'),
                         );
                       },
-                      loading: () => const CircularProgressIndicator(),
-                      error: (error, stack) => Text('Error: $error'),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _completeSession,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.green,
-                  ),
-                  child: const Text('Complete Session'),
-                ),
-              ],
-            ],
-          ], // Closing children array for Column
-        ), // Closing Column
-      ), // Closing SingleChildScrollView
-    ), // Closing ConstrainedBox
-  ), // Closing Center (body)
-); // Closing Scaffold
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _completeSession,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Colors.green,
+                      ),
+                      child: const Text('Complete Session'),
+                    ),
+                  ],
+                ],
+              ], // Closing children array for Column
+            ), // Closing Column
+          ), // Closing SingleChildScrollView
+        ), // Closing ConstrainedBox
+      ), // Closing Center (body)
+    ); // Closing Scaffold
   }
 }
