@@ -169,6 +169,7 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Outbound'),
+        elevation: 0,
       ),
       body: Center(
         child: ConstrainedBox(
@@ -178,88 +179,134 @@ class _OutboundScreenState extends ConsumerState<OutboundScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Icon(Icons.remove_circle, size: 48, color: Colors.orange),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isScanning ? null : _scanBarcode,
-                      icon: const Icon(Icons.qr_code_scanner),
-                      label: const Text('Scan Item'),
-                    ),
-                    const SizedBox(height: 12),
-                    itemsAsync.when(
-                      data: (items) => ElevatedButton.icon(
-                        onPressed: () => _selectItemFromList(items),
-                        icon: const Icon(Icons.list),
-                        label: const Text('Pick from list'),
+                Card(
+                  elevation: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                          Colors.white,
+                        ],
                       ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 16),
-                    if (_selectedItem != null)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          _selectedItem!.name,
-                          style: Theme.of(context).textTheme.titleMedium,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                  Icons.remove_circle_outline_rounded,
+                                  size: 32,
+                                  color: Colors.white),
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Kurangi Stok',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Pilih item dengan scan atau list',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        subtitle: Text(
-                          'SKU: ${_selectedItem!.sku}${_selectedItem!.barcode != null ? '\nBarcode: ${_selectedItem!.barcode}' : ''}',
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: _isScanning ? null : _scanBarcode,
+                          icon: const Icon(Icons.qr_code_scanner),
+                          label: const Text('Scan Item'),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => setState(() => _selectedItem = null),
+                        const SizedBox(height: 12),
+                        itemsAsync.when(
+                          data: (items) => ElevatedButton.icon(
+                            onPressed: () => _selectItemFromList(items),
+                            icon: const Icon(Icons.list),
+                            label: const Text('Pick from list'),
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
                         ),
-                      )
-                    else
-                      const Text(
-                        'Select an item via scan or list.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                  ],
+                        const SizedBox(height: 16),
+                        if (_selectedItem != null)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              _selectedItem!.name,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            subtitle: Text(
+                              'SKU: ${_selectedItem!.sku}${_selectedItem!.barcode != null ? '\nBarcode: ${_selectedItem!.barcode}' : ''}',
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () =>
+                                  setState(() => _selectedItem = null),
+                            ),
+                          )
+                        else
+                          const Text(
+                            'Select an item via scan or list.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location ID',
-                prefixIcon: Icon(Icons.location_on),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _qtyController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
-                prefixIcon: Icon(Icons.numbers),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _processOutbound,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.orange,
-              ),
-              child: const Text('Process Outbound'),
-            ),
-          ], // Closing children array for Column
-        ), // Closing Column
-      ), // Closing SingleChildScrollView
-    ), // Closing ConstrainedBox
-  ), // Closing Center (body)
-); // Closing Scaffold
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _locationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Location ID',
+                    prefixIcon: Icon(Icons.location_on),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _qtyController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Quantity',
+                    prefixIcon: Icon(Icons.numbers),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _processOutbound,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: const Text('Process Outbound'),
+                ),
+              ], // Closing children array for Column
+            ), // Closing Column
+          ), // Closing SingleChildScrollView
+        ), // Closing ConstrainedBox
+      ), // Closing Center (body)
+    ); // Closing Scaffold
   }
 }
-
